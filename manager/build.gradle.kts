@@ -44,8 +44,17 @@ fun getGitCommitCount(): Int {
 }
 
 fun getGitDescribe(): String {
-    val process = Runtime.getRuntime().exec(arrayOf("git", "describe", "--tags", "--always"))
-    return process.inputStream.bufferedReader().use { it.readText().trim() }
+    return try {
+        // --abbrev=0 只输出最近的 tag 名，不带 -<提交数>-g<hash>
+        exec("git describe --tags --abbrev=0", "").trim()
+    } catch (e: Exception) {
+        // 仓库里一个 tag 都没有时回退到短 hash
+        try {
+            exec("git describe --tags --always", "").trim()
+        } catch (e2: Exception) {
+            "unknown"
+        }
+    }
 }
 
 fun getVersionCode(): Int {
