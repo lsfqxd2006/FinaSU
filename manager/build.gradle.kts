@@ -16,8 +16,10 @@ extra["managerVersionCode"] = getVersionCode()
 extra["managerVersionName"] = getVersionName()
 
 fun getGitCommitCount(): Int {
-    val process = Runtime.getRuntime().exec(arrayOf("git", "rev-list", "--count", "HEAD"))
-    return process.inputStream.bufferedReader().use { it.readText().trim().toInt() }
+    exec("git fetch https://github.com/LyraVoid/FinaSU.git master --quiet", "")
+    val count = exec("git rev-list --count FETCH_HEAD", "")
+    return count.toIntOrNull()?.takeIf { it > 0 }
+        ?: error("Failed to determine upstream commit count")
 }
 
 fun getGitDescribe(): String {
