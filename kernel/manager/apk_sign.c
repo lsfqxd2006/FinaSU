@@ -52,7 +52,7 @@ typedef struct {
 static apk_sign_key_t apk_sign_keys[] = {
     { FINASU_TRUSTED_SIZE, FINASU_TRUSTED_HASH, APK_SIGN_FLAG_TRUSTED, "FinaSU" },
 #if (KSU_PRESET_MANAGER_MASK & 0x01)
-    { 0x033b, "c371061b19d8c7d7d6133c6a9bafe198fa944e50c1b31c9d8daa8d7f1fc2d2d6", 0, "KernelSU" },
+    { 0x29c, "224ad6f3436123ed79588192cba9c8892a93bf9b89c8f734413e02afc627174a", 0, "KernelSU" },
 #endif
 #if (KSU_PRESET_MANAGER_MASK & 0x02)
     { 0x375, "484fcba6e6c43b1fb09700633bf2fb4758f13cb0b2f4457b80d075084b26c588", 0, "KowSU" },
