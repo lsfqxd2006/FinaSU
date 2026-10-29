@@ -25,7 +25,7 @@
                     android:fillColor="@android:color/transparent"
                     android:pathData="M60,60 H440"
                     android:strokeWidth="20"
-                    android:strokeColor="@color/ic_launcher_foreground"
+                    android:strokeColor="@color/ic_launcher_foreground_kernelsu"
                     android:strokeLineCap="square"
                     android:trimPathEnd="1" />
             </group>
@@ -36,7 +36,7 @@
                     android:fillColor="@android:color/transparent"
                     android:pathData="M440,60 V440"
                     android:strokeWidth="20"
-                    android:strokeColor="@color/ic_launcher_foreground"
+                    android:strokeColor="@color/ic_launcher_foreground_kernelsu"
                     android:strokeLineCap="square"
                     android:trimPathEnd="1" />
             </group>
@@ -47,7 +47,7 @@
                     android:fillColor="@android:color/transparent"
                     android:pathData="M440,440 H60"
                     android:strokeWidth="20"
-                    android:strokeColor="@color/ic_launcher_foreground"
+                    android:strokeColor="@color/ic_launcher_foreground_kernelsu"
                     android:strokeLineCap="square"
                     android:trimPathEnd="1" />
             </group>
@@ -58,7 +58,7 @@
                     android:fillColor="@android:color/transparent"
                     android:pathData="M60,440 V60"
                     android:strokeWidth="20"
-                    android:strokeColor="@color/ic_launcher_foreground"
+                    android:strokeColor="@color/ic_launcher_foreground_kernelsu"
                     android:strokeLineCap="square"
                     android:trimPathEnd="1" />
             </group>
@@ -67,7 +67,7 @@
                 android:translateX="240"
                 android:translateY="240">
                 <path
-                    android:fillColor="@color/ic_launcher_foreground"
+                    android:fillColor="@color/ic_launcher_foreground_kernelsu"
                     android:pathData="M0,0h210v210h-210z" />
             </group>
             <group
@@ -75,7 +75,7 @@
                 android:translateX="50"
                 android:translateY="50">
                 <path
-                    android:fillColor="@color/ic_launcher_foreground"
+                    android:fillColor="@color/ic_launcher_foreground_kernelsu"
                     android:pathData="M0,0h210v210h-210z" />
             </group>
         </group>
