@@ -15,19 +15,17 @@ object LauncherIconUtils {
     private const val PREFS = "settings"
 
     private const val ALIAS_DEFAULT = "me.weishu.kernelsu.ui.MainActivityDefault"
-    private const val ALIAS_GEOMETRY = "me.weishu.kernelsu.ui.MainActivityGeometry"
     private const val ALIAS_KERNELSU = "me.weishu.kernelsu.ui.MainActivityKernelSU"
 
     private const val MAIN_ACTIVITY = ALIAS_DEFAULT
 
-    private val ALL_ALIASES = listOf(ALIAS_DEFAULT, ALIAS_GEOMETRY, ALIAS_KERNELSU)
+    private val ALL_ALIASES = listOf(ALIAS_DEFAULT, ALIAS_KERNELSU)
 
     const val PREF_ICON_STYLE = "launcher_icon_style"
     const val STYLE_DEFAULT = "default"
-    const val STYLE_GEOMETRY = "geometry"
     const val STYLE_KERNELSU = "kernelsu"
 
-    val styles = listOf(STYLE_DEFAULT, STYLE_GEOMETRY, STYLE_KERNELSU)
+    val styles = listOf(STYLE_DEFAULT, STYLE_KERNELSU)
 
     /** Resolves the active icon style, defaulting to [STYLE_DEFAULT]. */
     fun currentStyle(context: Context): String {
@@ -45,7 +43,6 @@ object LauncherIconUtils {
 
     /** ComponentName of the launcher alias that should be enabled for [style]. */
     fun componentFor(context: Context, style: String): ComponentName = when (style) {
-        STYLE_GEOMETRY -> alias(context, ALIAS_GEOMETRY)
         STYLE_KERNELSU -> alias(context, ALIAS_KERNELSU)
         else -> alias(context, MAIN_ACTIVITY)
     }

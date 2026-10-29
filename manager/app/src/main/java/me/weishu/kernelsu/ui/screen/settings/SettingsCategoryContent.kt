@@ -153,7 +153,6 @@ fun AppearanceCategoryContent(uiState: SettingsUiState, actions: SettingsScreenA
     val launcherIconLabels = LauncherIconUtils.styles.associateWith { style ->
         stringResource(
             when (style) {
-                LauncherIconUtils.STYLE_GEOMETRY -> R.string.launcher_icon_style_geometry
                 LauncherIconUtils.STYLE_KERNELSU -> R.string.launcher_icon_style_kernelsu
                 else -> R.string.launcher_icon_style_default
             }
