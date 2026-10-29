@@ -133,6 +133,7 @@ android {
 
     androidResources {
         generateLocaleConfig = true
+        localeFilters += listOf("en", "zh-rCN", "zh-rTW")
     }
     compileSdk {
         version =
