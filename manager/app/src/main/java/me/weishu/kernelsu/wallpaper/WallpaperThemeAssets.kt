@@ -269,8 +269,8 @@ internal object SettingsBackgroundAsset : ThemedAsset {
 }
 
 /**
- * The app font. Only [FontMode.CUSTOM] owns a file; the other two modes are pure configuration, so
- * they round-trip through `theme.json` alone.
+ * The app font. Only [FontMode.CUSTOM] owns a file; [FontMode.SYSTEM_DEFAULT] is pure configuration,
+ * so it round-trips through `theme.json` alone.
  *
  * The key names and the `font.ttf` asset name are shared with the wider theme ecosystem, so a theme
  * exported elsewhere imports here (and vice versa).
@@ -293,14 +293,14 @@ internal object FontAsset : ThemedAsset {
     }
 
     override suspend fun apply(context: Context, json: JSONObject, file: File?) {
-        // Themes written before the three-mode setting only carry the legacy boolean.
+        // Themes written before the mode setting only carry the legacy boolean.
         val mode = FontMode.fromSerializedName(json.optString("fontMode").ifEmpty { null })
-            ?: if (json.optBoolean("isFontEnabled", false)) FontMode.CUSTOM else FontMode.APP_DEFAULT
+            ?: if (json.optBoolean("isFontEnabled", false)) FontMode.CUSTOM else FontMode.SYSTEM_DEFAULT
 
         when {
             mode != FontMode.CUSTOM -> FontConfig.setFontMode(context, mode)
             file != null -> FontConfig.applyCustomFont(context, file)
-            else -> FontConfig.setFontMode(context, FontMode.APP_DEFAULT)
+            else -> FontConfig.setFontMode(context, FontMode.SYSTEM_DEFAULT)
         }
     }
 
