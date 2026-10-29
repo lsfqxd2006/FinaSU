@@ -817,7 +817,6 @@
     <string name="wallpaper_work_card_removed">Work card image removed</string>
     <string name="font_title">Fonts</string>
     <string name="settings_font_summary">Custom font configuration</string>
-    <string name="font_mode_app">App default</string>
     <string name="font_mode_system">System default</string>
     <string name="font_mode_custom">Custom</string>
     <string name="font_select_file">Select font file</string>

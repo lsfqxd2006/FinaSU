@@ -789,7 +789,6 @@
     <string name="wallpaper_work_card_removed">工作卡片圖片已移除</string>
     <string name="font_title">字型</string>
     <string name="settings_font_summary">自訂字型設定</string>
-    <string name="font_mode_app">應用程式預設</string>
     <string name="font_mode_system">系統預設</string>
     <string name="font_mode_custom">自訂</string>
     <string name="font_select_file">選擇字型檔案</string>

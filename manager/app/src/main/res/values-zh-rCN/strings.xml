@@ -808,7 +808,6 @@
     <string name="wallpaper_work_card_removed">工作卡片图片已移除</string>
     <string name="font_title">字体</string>
     <string name="settings_font_summary">自定义字体配置</string>
-    <string name="font_mode_app">软件默认</string>
     <string name="font_mode_system">系统默认</string>
     <string name="font_mode_custom">自定义</string>
     <string name="font_select_file">选择字体文件</string>
