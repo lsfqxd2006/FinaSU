@@ -46,7 +46,7 @@ import me.weishu.kernelsu.ui.theme.FontConfig
 import me.weishu.kernelsu.ui.theme.FontMode
 
 /**
- * The font setting: the three [FontMode]s, plus the import and restore rows that only make sense
+ * The font setting: the two [FontMode]s, plus the import and restore rows that only make sense
  * once CUSTOM is selected. The modes are mutually exclusive, so they are radio rows in one group.
  */
 @Composable
@@ -116,13 +116,6 @@ fun FontScreen() {
             SegmentedColumn(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 13.dp),
                 content = buildList {
-                    add {
-                        SegmentedRadioItem(
-                            title = stringResource(R.string.font_mode_app),
-                            selected = FontConfig.fontMode == FontMode.APP_DEFAULT,
-                            onClick = { FontConfig.setFontMode(context, FontMode.APP_DEFAULT) },
-                        )
-                    }
                     add {
                         SegmentedRadioItem(
                             title = stringResource(R.string.font_mode_system),

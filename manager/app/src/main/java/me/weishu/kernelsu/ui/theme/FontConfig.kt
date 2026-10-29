@@ -8,25 +8,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontFamily
-import androidx.core.content.res.ResourcesCompat
-import me.weishu.kernelsu.R
 import java.io.File
 
 /**
  * How the application renders text.
  *
- * [APP_DEFAULT] uses the font bundled with FinaSU, [SYSTEM_DEFAULT] leaves the platform font in
- * place and [CUSTOM] uses a font the user imported.
+ * [SYSTEM_DEFAULT] leaves the platform font in place and [CUSTOM] uses a font the user imported.
  */
 enum class FontMode {
-    APP_DEFAULT,
     SYSTEM_DEFAULT,
     CUSTOM;
 
     /** Value written to theme.json; kept stable for cross-version compatibility. */
     val serializedName: String
         get() = when (this) {
-            APP_DEFAULT -> "app"
             SYSTEM_DEFAULT -> "system"
             CUSTOM -> "custom"
         }
@@ -35,8 +30,9 @@ enum class FontMode {
         fun fromName(name: String?): FontMode? = entries.firstOrNull { it.name == name }
 
         fun fromSerializedName(value: String?): FontMode? = when (value) {
-            "app" -> APP_DEFAULT
-            "system" -> SYSTEM_DEFAULT
+            // Older exports wrote "app" for the bundled font that no longer ships; fall back to the
+            // platform font rather than failing the import.
+            "app", "system" -> SYSTEM_DEFAULT
             "custom" -> CUSTOM
             else -> null
         }
@@ -44,7 +40,7 @@ enum class FontMode {
 }
 
 /**
- * The app's font selection: one of the three [FontMode]s plus the imported file that CUSTOM uses.
+ * The app's font selection: one of the two [FontMode]s plus the imported file that CUSTOM uses.
  *
  * Replacement state lives here so the theme can rebuild its typography the moment the mode changes.
  */
@@ -75,8 +71,10 @@ object FontConfig {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         customFontFilename = prefs.getString(KEY_CUSTOM_FONT_PATH, null)
 
-        // Migrate the legacy boolean to the three-mode setting when font_mode was never written: an
-        // enabled custom font becomes CUSTOM, everything else keeps the platform font.
+        // Migrate the legacy boolean to the mode setting when font_mode was never written: an
+        // enabled custom font becomes CUSTOM, everything else keeps the platform font. An older
+        // "APP_DEFAULT" name no longer exists in the enum, so it also lands here and falls back to
+        // SYSTEM_DEFAULT.
         val storedMode = FontMode.fromName(prefs.getString(KEY_FONT_MODE, null))
         val legacyEnabled = prefs.getBoolean(KEY_CUSTOM_FONT_ENABLED, false)
         fontMode = storedMode ?: if (legacyEnabled) FontMode.CUSTOM else FontMode.SYSTEM_DEFAULT
@@ -171,8 +169,8 @@ object FontConfig {
             file.delete()
         }
         customFontFilename = null
-        // Removing the imported font returns to the app's bundled default.
-        fontMode = FontMode.APP_DEFAULT
+        // Removing the imported font returns to the platform font; the bundled one no longer ships.
+        fontMode = FontMode.SYSTEM_DEFAULT
         isCustomFontEnabled = false
         invalidateFontCache()
         save(context)
@@ -198,7 +196,6 @@ object FontConfig {
         }
 
         val family = when (fontMode) {
-            FontMode.APP_DEFAULT -> loadBundledFont(context)
             FontMode.SYSTEM_DEFAULT -> FontFamily.Default
             FontMode.CUSTOM -> loadCustomFont(context)
         }
@@ -207,13 +204,6 @@ object FontConfig {
         cachedFilename = customFontFilename
         cachedFontFamily = family
         return family
-    }
-
-    private fun loadBundledFont(context: Context): FontFamily = try {
-        ResourcesCompat.getFont(context, R.font.xiaolai)?.let { FontFamily(it) } ?: FontFamily.Default
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to load bundled font", e)
-        FontFamily.Default
     }
 
     private fun loadCustomFont(context: Context): FontFamily {
