@@ -31,16 +31,8 @@ fun exec(command: String, workingDir: String): String {
 }
 
 fun getGitCommitCount(): Int {
-    // CI 的 actions/checkout 默认是 shallow clone，直接 fetch 可能只拿到 1 个提交。
-    // 先尝试 --unshallow 补全历史；非 shallow 仓库会失败，回退到普通 fetch。
-    try {
-        exec("git fetch --unshallow --quiet https://github.com/LyraVoid/FinaSU.git master", "")
-    } catch (e: Exception) {
-        exec("git fetch --quiet https://github.com/LyraVoid/FinaSU.git master", "")
-    }
-    val count = exec("git rev-list --count FETCH_HEAD", "").trim()
-    return count.toIntOrNull()?.takeIf { it > 0 }
-        ?: error("Failed to determine upstream commit count, got: '$count'")
+    val process = Runtime.getRuntime().exec(arrayOf("git", "rev-list", "--count", "HEAD"))
+    return process.inputStream.bufferedReader().use { it.readText().trim().toInt() }
 }
 
 fun getGitDescribe(): String {
