@@ -24,7 +24,7 @@ fn get_git_version() -> Result<(u32, String), std::io::Error> {
 
     let version_name = String::from_utf8(
         Command::new("git")
-            .args(["describe", "--tags", "--always"])
+            .args(["describe", "--tags", "--always", "--abbrev=0"])
             .output()?
             .stdout,
     )
