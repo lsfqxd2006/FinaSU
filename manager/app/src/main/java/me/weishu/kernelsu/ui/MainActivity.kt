@@ -1004,9 +1004,7 @@ private fun MainScreenBackHandler(
     val isPagerBackHandlerEnabled by remember(navAnimatedContentScope) {
         derivedStateOf {
             navController.current() is Route.Main && navController.backStackSize() == 1 &&
-                mainState.selectedDestination != BottomBarDestination.Home &&
-                !navController.wasJustPopped() &&
-                !navAnimatedContentScope.transition.isRunning
+                mainState.selectedDestination != BottomBarDestination.Home
         }
     }
 
