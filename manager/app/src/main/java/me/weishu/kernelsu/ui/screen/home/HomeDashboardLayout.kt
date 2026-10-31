@@ -42,7 +42,8 @@ import me.weishu.kernelsu.wallpaper.surface.SurfaceBounds
 import me.weishu.kernelsu.wallpaper.surface.SurfaceConfig
 import me.weishu.kernelsu.wallpaper.surface.SurfaceRegistry
 import me.weishu.kernelsu.wallpaper.surface.SurfaceStore
-
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.text.style.TextAlign
 /**
  * DashboardUI: one wide hero banner over the counters and the system facts.
  *
@@ -186,20 +187,21 @@ private fun DashboardHeroCard(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        HeroFact(
-                            label = stringResource(R.string.module_version),
-                            value = if (ksuActive) "${state.ksuVersion}-${state.kernelUAPIVersion}" else "—",
-                            modifier = Modifier.weight(1f),
-                        )
-                        HeroFact(
-                            label = stringResource(R.string.home_kernel),
-                            value = state.systemInfo.kernelVersion,
-                            modifier = Modifier.weight(1f),
-                        )
                         HeroFact(
                             label = stringResource(R.string.home_selinux_status),
                             value = selinuxDisplayName(state.systemInfo.selinuxStatus),
+                            modifier = Modifier.weight(1f),
+                        )
+                        HeroFact(
+                            label = stringResource(R.string.home_zygisk_implement),
+                            value = state.zygiskProvider ?: "NULL", 
+                            modifier = Modifier.weight(1f),
+                        )
+                        HeroFact(
+                            label = stringResource(R.string.home_seccomp_status),
+                            value = seccompDisplayName(state.systemInfo.seccompStatus),
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -223,7 +225,11 @@ private fun HeroFact(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Text(
             text = label,
             style = FolkType.Caption,
@@ -232,6 +238,7 @@ private fun HeroFact(
                 ?: MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center, // 补充
         )
         Spacer(Modifier.height(4.dp))
         Text(
@@ -239,6 +246,7 @@ private fun HeroFact(
             style = FolkType.Summary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center, // 补充
         )
     }
 }
