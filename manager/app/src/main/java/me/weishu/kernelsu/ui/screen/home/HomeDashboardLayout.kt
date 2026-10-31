@@ -186,7 +186,7 @@ private fun DashboardHeroCard(
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         HeroFact(
@@ -195,13 +195,13 @@ private fun DashboardHeroCard(
                             modifier = Modifier.weight(1f),
                         )
                         HeroFact(
-                            label = stringResource(R.string.home_zygisk_implement),
-                            value = state.zygiskProvider ?: "NULL", 
+                            label = "Seccomp",
+                            value = seccompDisplayName(state.systemInfo.seccompStatus),
                             modifier = Modifier.weight(1f),
                         )
                         HeroFact(
-                            label = stringResource(R.string.home_seccomp_status),
-                            value = seccompDisplayName(state.systemInfo.seccompStatus),
+                            label = stringResource(R.string.home_zygisk_implement),
+                            value = state.zygiskProvider ?: "NULL", 
                             modifier = Modifier.weight(1f),
                         )
                     }
