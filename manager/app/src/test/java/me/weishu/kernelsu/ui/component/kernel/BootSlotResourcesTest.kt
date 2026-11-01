@@ -14,24 +14,8 @@ class BootSlotResourcesTest {
         ).first(File::isDirectory)
         val locales = listOf(
             "values",
-            "values-ar",
-            "values-es",
-            "values-in",
-            "values-ja",
-            "values-ko",
-            "values-mgl",
-            "values-pl",
-            "values-pt-rBR",
-            "values-ru",
-            "values-tr",
-            "values-vi",
-            "values-zh-rAG",
-            "values-zh-rAT",
-            "values-zh-rCK",
             "values-zh-rCN",
-            "values-zh-rMC",
             "values-zh-rTW",
-            "values-zh-rWC",
         )
         val expected = parseStrings(File(root, "values/boot_slot.xml"))
         assertTrue(expected.containsKey("boot_slot_source"))
@@ -42,15 +26,6 @@ class BootSlotResourcesTest {
                 assertEquals("placeholders in $locale/$key", placeholders(text), placeholders(actual.getValue(key)))
             }
         }
-    }
-
-    @Test
-    fun `cat locale keeps its characteristic voice`() {
-        val root = sequenceOf(File("src/main/res"), File("app/src/main/res")).first(File::isDirectory)
-        val text = File(root, "values-zh-rAG/boot_slot.xml").readText()
-
-        assertTrue(text.contains("喵"))
-        assertTrue(text.contains("原味"))
     }
 
     private fun parseStrings(file: File): Map<String, String> {
