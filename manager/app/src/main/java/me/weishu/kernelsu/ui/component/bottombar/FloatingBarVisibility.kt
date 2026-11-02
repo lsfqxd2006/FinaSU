@@ -78,7 +78,18 @@ class FloatingBarVisibilityState internal constructor() {
         scrollOffset = 0f
         previousScrollOffset = 0f
     }
-
+    
+    /**
+     * Clear the leftover scroll direction without touching the auto-hide timer.
+     * Used after a horizontal pager switch settles: the previous vertical scroll's
+     * isScrollingDown must not leak into the swipe-hide branch and hide the bar immediately.
+     */
+    fun clearScrollDirection() {
+        isScrollingDown = false
+        scrollOffset = 0f
+        previousScrollOffset = 0f
+    }
+    
     /** Hide the bar without changing the armed state; used by the auto-hide timer. */
     internal fun hide() {
         visible = false
