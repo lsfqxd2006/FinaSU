@@ -2,8 +2,8 @@
 set -eu
 
 GKI_ROOT=$(pwd)
-FINASU_URL="${FINASU_URL:-${FOLKSU_URL:-https://github.com/LyraVoid/FinaSU.git}}"
-FINASU_REF="${FINASU_REF:-${FOLKSU_REF:-dev}}"
+FINASU_URL="${FINASU_URL:-${FOLKSU_URL:-https://github.com/lsfqxd2006/FinaSU.git}}"
+FINASU_REF="${FINASU_REF:-${FOLKSU_REF:-master}}"
 FINASU_DIR="${FINASU_DIR:-${FOLKSU_DIR:-}}"
 FINASU_KEEP_SOURCE="${FINASU_KEEP_SOURCE:-${FOLKSU_KEEP_SOURCE:-0}}"
 
