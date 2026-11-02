@@ -742,7 +742,7 @@ fun MainScreen(
     MainScreenBackHandler(
         mainState = mainPagerState,
         navController = navController,
-        onReturnHome = { floatingBarVisibility.onUserInteraction() },
+        onReturnHome = { floatingBarVisibility.reset() },
     )
 
     CompositionLocalProvider(
@@ -812,7 +812,7 @@ fun MainScreen(
                     mainPagerState.pagerState.settledPage != mainPagerState.pagerState.currentPage
         
             LaunchedEffect(pagerInteractionInProgress) {
-                if (!pagerInteractionInProgress) floatingBarVisibility.onUserInteraction()
+                if (!pagerInteractionInProgress) floatingBarVisibility.reset()
             }
         
             val floatingBarVisible = when {
