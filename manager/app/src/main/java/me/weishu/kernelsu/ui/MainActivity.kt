@@ -812,7 +812,10 @@ fun MainScreen(
                     mainPagerState.pagerState.settledPage != mainPagerState.pagerState.currentPage
         
             LaunchedEffect(pagerInteractionInProgress) {
-                if (!pagerInteractionInProgress) floatingBarVisibility.onUserInteraction()
+                if (!pagerInteractionInProgress) {
+                    floatingBarVisibility.onUserInteraction()
+                    floatingBarVisibility.clearScrollDirection()
+                }
             }
         
             val floatingBarVisible = when {
