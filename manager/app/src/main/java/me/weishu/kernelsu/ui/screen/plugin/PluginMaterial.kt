@@ -94,6 +94,7 @@ import me.weishu.kernelsu.R
 import me.weishu.kernelsu.data.model.LayoutVariant
 import me.weishu.kernelsu.data.model.Plugin
 import me.weishu.kernelsu.data.model.PluginConfigField
+import me.weishu.kernelsu.data.model.pluginLocalizedOrNull
 import me.weishu.kernelsu.modulebanner.ModuleCardConfig
 import me.weishu.kernelsu.modulebanner.PluginBannerSlot
 import me.weishu.kernelsu.ui.LocalLayoutVariant
@@ -640,7 +641,7 @@ private fun PluginConfigRow(
     onReset: () -> Unit,
 ) {
     val title = field.labels.pluginLocalizedOrNull() ?: field.label.ifBlank { field.key }
-    val summary = field.key.takeIf { field.label.isNotBlank() }
+    val summary = field.key.takeIf { title != field.key }
     val default = field.default.orEmpty()
     val resettable = field.default != null && value != default
 
@@ -778,7 +779,6 @@ private fun List<Plugin>.matching(query: String): List<Plugin> {
     return filter { plugin ->
         plugin.id.contains(trimmed, ignoreCase = true) ||
             plugin.name.contains(trimmed, ignoreCase = true) ||
-            plugin.names.values.any { it.contains(trimmed, ignoreCase = true) } ||
             plugin.description.contains(trimmed, ignoreCase = true) ||
             plugin.descriptions.values.any { it.contains(trimmed, ignoreCase = true) } ||
             plugin.quickAction?.labels?.values?.any { it.contains(trimmed, ignoreCase = true) } == true

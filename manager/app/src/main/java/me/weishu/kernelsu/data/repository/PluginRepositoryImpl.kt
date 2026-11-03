@@ -94,7 +94,7 @@ private fun JSONObject.toPlugin(): Plugin = Plugin(
     author = optString("author"),
     version = optString("version"),
     description = optString("description"),
-    descriptions = optJSONObject("descriptions").toStringMap(), // 新增
+    descriptions = optJSONObject("descriptions").toStringMap(),
     license = optString("license"),
     enabled = optBoolean("enabled"),
     entry = optString("entry"),
@@ -102,7 +102,7 @@ private fun JSONObject.toPlugin(): Plugin = Plugin(
         PluginQuickAction(
             function = it.optString("function"),
             label = it.optString("label"),
-            labels = it.optJSONObject("labels").toStringMap(),    // 新增
+            labels = it.optJSONObject("labels").toStringMap(),
         )
     },
     config = optJSONArray("config").toConfigFields(),
@@ -121,7 +121,7 @@ private fun JSONArray?.toConfigFields(): List<PluginConfigField> {
         PluginConfigField(
             key = field.optString("key"),
             label = field.optString("label"),
-            labels = field.optJSONObject("labels").toStringMap(), // 新增
+            labels = field.optJSONObject("labels").toStringMap(),
             type = field.optString("type"),
             default = if (field.isNull("default")) null else field.opt("default")?.toString(),
             options = field.optJSONArray("options").toStringList(),
@@ -135,7 +135,6 @@ private fun JSONArray?.toStringList(): List<String> {
     return (0 until length()).map { index -> optString(index) }
 }
 
-// 3. 在文件最底部（类外面或里面均可）加上这个工具函数：
 private fun JSONObject?.toStringMap(): Map<String, String> {
     if (this == null) return emptyMap()
     return keys().asSequence().associateWith { key -> optString(key) }

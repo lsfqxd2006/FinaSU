@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.data.model.Plugin
+import me.weishu.kernelsu.data.model.pluginLocalizedOrNull
 import me.weishu.kernelsu.modulebanner.CustomModuleInfo
 import me.weishu.kernelsu.modulebanner.ModuleCardConfig
 import me.weishu.kernelsu.ui.component.card.FolkCardFrame
@@ -96,7 +97,9 @@ private fun PluginCardContent(
     val displayName = plugin.names.pluginLocalizedOrNull() ?: customInfo?.name?.takeIf { it.isNotBlank() } ?: plugin.name.ifBlank { plugin.id }
     val displayVersion = customInfo?.version?.takeIf { it.isNotBlank() } ?: plugin.version
     val displayAuthor = customInfo?.author?.takeIf { it.isNotBlank() } ?: plugin.author
-    val displayDescription = plugin.descriptions.pluginLocalizedOrNull() ?: customInfo?.description?.takeIf { it.isNotBlank() } ?: plugin.description
+    val displayDescription = customInfo?.description?.takeIf { it.isNotBlank() }
+        ?: plugin.descriptions.pluginLocalizedOrNull()
+        ?: plugin.description
 
     val quickLabel = plugin.quickAction?.labels?.pluginLocalizedOrNull() ?: plugin.quickAction?.label?.takeIf { it.isNotBlank() }
     val showRun = actionable && (plugin.quickAction != null || plugin.callbacks.contains("action"))
