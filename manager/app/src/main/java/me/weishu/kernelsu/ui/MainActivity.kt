@@ -727,30 +727,35 @@ fun MainScreen(
         mainPagerState.syncToDestinations()
     }
 
-    MainScreenBackHandler(mainPagerState, navController)
+    val floatingBarRevision = FloatingBarConfig.revision.collectAsStateWithLifecycle().value
+    val navModeRevision = NavModeConfig.revision.collectAsStateWithLifecycle().value
+    val navMode = remember(navModeRevision) { NavModeConfig.mode }
+    val floatingBarEnabled = navMode == NavMode.Floating
+    val floatingBarStyle = remember(floatingBarRevision) { FloatingBarConfig.style }
+    val floatingBarCompact = remember(floatingBarRevision) { FloatingBarConfig.compact }
+    val floatingBarGlassEnabled = floatingBarEnabled &&
+        remember(floatingBarRevision) { FloatingBarConfig.glass } &&
+        isRealTimeBlurAvailable()
+    val floatingLiquidState = if (floatingBarGlassEnabled) rememberNavBarGlassLiquidState() else null
+    val floatingAutoHide = remember(floatingBarRevision) { FloatingBarConfig.autoHide }
+    val floatingSwipeHide = remember(floatingBarRevision) { FloatingBarConfig.swipeHide }
+    val floatingBarVisibility = rememberFloatingBarVisibilityState(
+        enabled = floatingBarEnabled,
+        autoHide = floatingAutoHide,
+        swipeHide = floatingSwipeHide,
+    )
+
+    MainScreenBackHandler(
+        mainState = mainPagerState,
+        navController = navController,
+        onReturnHome = { floatingBarVisibility.reset() },
+    )
 
     CompositionLocalProvider(
         LocalMainPagerState provides mainPagerState
     ) {
         val contentReady = rememberContentReady()
         val renderPagerPages = contentReady || mainPagerState.isNavigating
-        val floatingBarRevision = FloatingBarConfig.revision.collectAsStateWithLifecycle().value
-        val navModeRevision = NavModeConfig.revision.collectAsStateWithLifecycle().value
-        val navMode = remember(navModeRevision) { NavModeConfig.mode }
-        val floatingBarEnabled = navMode == NavMode.Floating
-        val floatingBarStyle = remember(floatingBarRevision) { FloatingBarConfig.style }
-        val floatingBarCompact = remember(floatingBarRevision) { FloatingBarConfig.compact }
-        val floatingBarGlassEnabled = floatingBarEnabled &&
-            remember(floatingBarRevision) { FloatingBarConfig.glass } &&
-            isRealTimeBlurAvailable()
-        val floatingLiquidState = if (floatingBarGlassEnabled) rememberNavBarGlassLiquidState() else null
-        val floatingAutoHide = remember(floatingBarRevision) { FloatingBarConfig.autoHide }
-        val floatingSwipeHide = remember(floatingBarRevision) { FloatingBarConfig.swipeHide }
-        val floatingBarVisibility = rememberFloatingBarVisibilityState(
-            enabled = floatingBarEnabled,
-            autoHide = floatingAutoHide,
-            swipeHide = floatingSwipeHide,
-        )
         val pagerContent = @Composable { bottomInnerPadding: Dp ->
             Box(modifier = Modifier.navBarLiquefiable(floatingLiquidState)) {
                 HorizontalPager(
@@ -814,6 +819,7 @@ fun MainScreen(
                 reservedHeight = floatingBarReservedHeight(floatingBarCompact, floatingBarStyle),
                 navigationBadge = navigationBadge,
                 liquidState = floatingLiquidState,
+                mainPagerState = mainPagerState,
                 onUserInteraction = { floatingBarVisibility.onUserInteraction() },
                 pagerContent = pagerContent,
             )
@@ -844,10 +850,36 @@ private fun FloatingNavHost(
     reservedHeight: Dp,
     navigationBadge: NavigationBadgeState,
     liquidState: LiquidState?,
+    mainPagerState: MainPagerState,
     onUserInteraction: () -> Unit,
     pagerContent: @Composable (Dp) -> Unit,
 ) {
+    val pagerState = mainPagerState.pagerState
+    // 横向滑动检测：currentPageOffsetFraction 非零表示 pager 正在横向偏移。
+    // 纵向滚动时它为 0，所以能区分「横向切页」和「纵向下滑」，不会像
+    // isScrollInProgress 那样在纵向下滑时抖动误触发。
+    val horizontalPagerOffset = kotlin.math.abs(pagerState.currentPageOffsetFraction) > 0.01f
+    val pagerSwitching =
+        mainPagerState.isNavigating ||
+            pagerState.currentPage != pagerState.settledPage ||
+            horizontalPagerOffset
+
+    // 切页刚完成的那一帧：isScrollingDown 可能还是上一页残留的 true，
+    // 直接回落会让导航栏闪一下又消失。用 justSettled 在这一帧强制显示，
+    // 同时 reset() 清除方向、重启 autoHide 计时器，下一帧起正常显示。
+    val previousSwitching = remember { mutableStateOf(pagerSwitching) }
+    val justSettled = previousSwitching.value && !pagerSwitching
+
+    SideEffect {
+        if (justSettled) {
+            visibility.reset()
+        }
+        previousSwitching.value = pagerSwitching
+    }
+
     val barVisible = when {
+        pagerSwitching -> true
+        justSettled -> true
         !autoHide && !swipeHide -> true
         !autoHide -> !visibility.isScrollingDown
         !swipeHide -> visibility.visible
@@ -1041,6 +1073,7 @@ private fun slideBackTransform(layoutDirection: LayoutDirection): ContentTransfo
 private fun MainScreenBackHandler(
     mainState: MainPagerState,
     navController: Navigator,
+    onReturnHome: () -> Unit = {},
 ) {
     val navAnimatedContentScope = LocalNavAnimatedContentScope.current
     val isPagerBackHandlerEnabled by remember(navAnimatedContentScope) {
@@ -1056,6 +1089,7 @@ private fun MainScreenBackHandler(
         state = navEventState,
         isBackEnabled = isPagerBackHandlerEnabled,
         onBackCompleted = {
+            onReturnHome()
             mainState.animateToDestination(BottomBarDestination.Home)
         }
     )
