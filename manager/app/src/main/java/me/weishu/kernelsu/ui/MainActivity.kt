@@ -810,7 +810,7 @@ fun MainScreen(
             // 横向滑动检测：currentPageOffsetFraction 非零表示 pager 正在横向偏移。
             // 纵向滚动时它为 0，所以能区分「横向切页」和「纵向下滑」，不会像
             // isScrollInProgress 那样在纵向下滑时抖动误触发。
-            val horizontalPagerOffset = pagerState.currentPageOffsetFraction.absoluteValue > 0.01f
+            val horizontalPagerOffset = kotlin.math.abs(pagerState.currentPageOffsetFraction) > 0.01f
             val pagerSwitching =
                 mainPagerState.isNavigating ||
                     pagerState.currentPage != pagerState.settledPage ||
