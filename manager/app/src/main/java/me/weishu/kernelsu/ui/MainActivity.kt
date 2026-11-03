@@ -720,31 +720,36 @@ fun MainScreen(
     LaunchedEffect(destinations) {
         mainPagerState.syncToDestinations()
     }
-
-    MainScreenBackHandler(mainPagerState, navController)
+    
+    val floatingBarRevision = FloatingBarConfig.revision.collectAsStateWithLifecycle().value
+    val navModeRevision = NavModeConfig.revision.collectAsStateWithLifecycle().value
+    val navMode = remember(navModeRevision) { NavModeConfig.mode }
+    val floatingBarEnabled = navMode == NavMode.Floating
+    val floatingBarStyle = remember(floatingBarRevision) { FloatingBarConfig.style }
+    val floatingBarCompact = remember(floatingBarRevision) { FloatingBarConfig.compact }
+    val floatingBarGlassEnabled = floatingBarEnabled &&
+        remember(floatingBarRevision) { FloatingBarConfig.glass } &&
+        isRealTimeBlurAvailable()
+    val floatingLiquidState = if (floatingBarGlassEnabled) rememberNavBarGlassLiquidState() else null
+    val floatingAutoHide = remember(floatingBarRevision) { FloatingBarConfig.autoHide }
+    val floatingSwipeHide = remember(floatingBarRevision) { FloatingBarConfig.swipeHide }
+    val floatingBarVisibility = rememberFloatingBarVisibilityState(
+        enabled = floatingBarEnabled,
+        autoHide = floatingAutoHide,
+        swipeHide = floatingSwipeHide,
+    )
+    
+    MainScreenBackHandler(
+        mainState = mainPagerState,
+        navController = navController,
+        onReturnHome = { floatingBarVisibility.reset() },
+    )
 
     CompositionLocalProvider(
         LocalMainPagerState provides mainPagerState
     ) {
         val contentReady = rememberContentReady()
         val renderPagerPages = contentReady || mainPagerState.isNavigating
-        val floatingBarRevision = FloatingBarConfig.revision.collectAsStateWithLifecycle().value
-        val navModeRevision = NavModeConfig.revision.collectAsStateWithLifecycle().value
-        val navMode = remember(navModeRevision) { NavModeConfig.mode }
-        val floatingBarEnabled = navMode == NavMode.Floating
-        val floatingBarStyle = remember(floatingBarRevision) { FloatingBarConfig.style }
-        val floatingBarCompact = remember(floatingBarRevision) { FloatingBarConfig.compact }
-        val floatingBarGlassEnabled = floatingBarEnabled &&
-            remember(floatingBarRevision) { FloatingBarConfig.glass } &&
-            isRealTimeBlurAvailable()
-        val floatingLiquidState = if (floatingBarGlassEnabled) rememberNavBarGlassLiquidState() else null
-        val floatingAutoHide = remember(floatingBarRevision) { FloatingBarConfig.autoHide }
-        val floatingSwipeHide = remember(floatingBarRevision) { FloatingBarConfig.swipeHide }
-        val floatingBarVisibility = rememberFloatingBarVisibilityState(
-            enabled = floatingBarEnabled,
-            autoHide = floatingAutoHide,
-            swipeHide = floatingSwipeHide,
-        )
         val pagerContent = @Composable { bottomInnerPadding: Dp ->
             Box(modifier = Modifier.navBarLiquefiable(floatingLiquidState)) {
                 HorizontalPager(
@@ -801,7 +806,20 @@ fun MainScreen(
                 }
             }
         } else if (floatingBarEnabled) {
+            val pagerInteractionInProgress =
+                mainPagerState.pagerState.isScrollInProgress ||
+                    mainPagerState.isNavigating ||
+                    mainPagerState.pagerState.settledPage != mainPagerState.pagerState.currentPage
+        
+            LaunchedEffect(pagerInteractionInProgress) {
+                if (!pagerInteractionInProgress) {
+                    floatingBarVisibility.onUserInteraction()
+                    floatingBarVisibility.clearScrollDirectionIfIdle()
+                }
+            }
+        
             val floatingBarVisible = when {
+                pagerInteractionInProgress -> true
                 !floatingAutoHide && !floatingSwipeHide -> true
                 !floatingAutoHide -> !floatingBarVisibility.isScrollingDown
                 !floatingSwipeHide -> floatingBarVisibility.visible
@@ -999,6 +1017,7 @@ private fun slideBackTransform(layoutDirection: LayoutDirection): ContentTransfo
 private fun MainScreenBackHandler(
     mainState: MainPagerState,
     navController: Navigator,
+    onReturnHome: () -> Unit = {},
 ) {
     val navAnimatedContentScope = LocalNavAnimatedContentScope.current
     val isPagerBackHandlerEnabled by remember(navAnimatedContentScope) {
@@ -1014,6 +1033,7 @@ private fun MainScreenBackHandler(
         state = navEventState,
         isBackEnabled = isPagerBackHandlerEnabled,
         onBackCompleted = {
+            onReturnHome()
             mainState.animateToDestination(BottomBarDestination.Home)
         }
     )

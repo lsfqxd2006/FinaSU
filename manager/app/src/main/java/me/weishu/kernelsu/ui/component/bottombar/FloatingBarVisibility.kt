@@ -41,12 +41,15 @@ class FloatingBarVisibilityState internal constructor() {
 
     private var scrollOffset by mutableFloatStateOf(0f)
     private var previousScrollOffset by mutableFloatStateOf(0f)
-
+    /** Whether a vertical scroll is currently in flight (drag or fling). */
+    private var isVerticallyScrolling by mutableStateOf(false)
+    
     /** Watches content scrolling to flip [isScrollingDown] and restart the auto-hide timer. */
     val connection: NestedScrollConnection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             val delta = available.y
             if (delta != 0f) {
+                isVerticallyScrolling = true
                 onUserInteraction()
                 val newOffset = scrollOffset + delta
                 scrollOffset = newOffset
@@ -58,13 +61,26 @@ class FloatingBarVisibilityState internal constructor() {
             }
             return Offset.Zero
         }
-
+    
+        override fun onPostScroll(
+            consumed: Offset,
+            available: Offset,
+            source: NestedScrollSource,
+        ): Offset {
+            // No pending vertical delta means the drag has drained (released without a fling).
+            if (available.y == 0f && consumed.y == 0f) {
+                isVerticallyScrolling = false
+            }
+            return Offset.Zero
+        }
+    
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
             previousScrollOffset = scrollOffset
+            isVerticallyScrolling = false
             return super.onPostFling(consumed, available)
         }
     }
-
+    
     /** The user touched the bar or scrolled the content: show the bar and re-arm the timer. */
     fun onUserInteraction() {
         visible = true
@@ -74,6 +90,17 @@ class FloatingBarVisibilityState internal constructor() {
     /** Force a fully visible idle state, e.g. when the app returns to the foreground. */
     fun reset() {
         onUserInteraction()
+        isScrollingDown = false
+        scrollOffset = 0f
+        previousScrollOffset = 0f
+    }
+
+    /**
+     * Clear the leftover scroll direction only when no vertical scroll is in flight,
+     * so a horizontal page switch settling does not interrupt an ongoing swipe-hide.
+     */
+    fun clearScrollDirectionIfIdle() {
+        if (isVerticallyScrolling) return
         isScrollingDown = false
         scrollOffset = 0f
         previousScrollOffset = 0f
