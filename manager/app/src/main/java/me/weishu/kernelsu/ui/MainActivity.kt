@@ -720,7 +720,7 @@ fun MainScreen(
     LaunchedEffect(destinations) {
         mainPagerState.syncToDestinations()
     }
-    
+
     val floatingBarRevision = FloatingBarConfig.revision.collectAsStateWithLifecycle().value
     val navModeRevision = NavModeConfig.revision.collectAsStateWithLifecycle().value
     val navMode = remember(navModeRevision) { NavModeConfig.mode }
@@ -738,7 +738,7 @@ fun MainScreen(
         autoHide = floatingAutoHide,
         swipeHide = floatingSwipeHide,
     )
-    
+
     MainScreenBackHandler(
         mainState = mainPagerState,
         navController = navController,
@@ -806,20 +806,29 @@ fun MainScreen(
                 }
             }
         } else if (floatingBarEnabled) {
-            val pagerInteractionInProgress =
-                mainPagerState.pagerState.isScrollInProgress ||
-                    mainPagerState.isNavigating ||
-                    mainPagerState.pagerState.settledPage != mainPagerState.pagerState.currentPage
-        
-            LaunchedEffect(pagerInteractionInProgress) {
-                if (!pagerInteractionInProgress) {
-                    floatingBarVisibility.onUserInteraction()
-                    floatingBarVisibility.clearScrollDirectionIfIdle()
+            // 切页进行中：currentPage 已变但 settledPage 尚未追上（滑动吸附中），
+            // 或点击底栏的 animateToDestination 动画中。
+            // 刻意不包含 isScrollInProgress：它在纵向内容滚动时会被手势判定短暂抖动，
+            // 若纳入会让 LaunchedEffect 在下滑过程中误触发 reset()，破坏 swipe-hide。
+            val pagerSwitching =
+                mainPagerState.isNavigating ||
+                    mainPagerState.pagerState.currentPage != mainPagerState.pagerState.settledPage
+
+            // 只在「从切页中 → 切页稳定」的那一次翻转时重置；
+            // 纵向滚动不会改变 pagerSwitching，因此不会误触发。
+            LaunchedEffect(Unit) {
+                var previousSwitching = pagerSwitching
+                snapshotFlow { pagerSwitching }.collect { switching ->
+                    if (previousSwitching && !switching) {
+                        // 一次切页真正完成：重启 autoHide 计时器并清除上一页残留的滚动方向。
+                        floatingBarVisibility.reset()
+                    }
+                    previousSwitching = switching
                 }
             }
-        
+
             val floatingBarVisible = when {
-                pagerInteractionInProgress -> true
+                pagerSwitching -> true
                 !floatingAutoHide && !floatingSwipeHide -> true
                 !floatingAutoHide -> !floatingBarVisibility.isScrollingDown
                 !floatingSwipeHide -> floatingBarVisibility.visible
