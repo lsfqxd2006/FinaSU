@@ -806,29 +806,32 @@ fun MainScreen(
                 }
             }
         } else if (floatingBarEnabled) {
-            // 切页进行中：currentPage 已变但 settledPage 尚未追上（滑动吸附中），
-            // 或点击底栏的 animateToDestination 动画中。
-            // 刻意不包含 isScrollInProgress：它在纵向内容滚动时会被手势判定短暂抖动，
-            // 若纳入会让 LaunchedEffect 在下滑过程中误触发 reset()，破坏 swipe-hide。
+            val pagerState = mainPagerState.pagerState
+            // 横向滑动检测：currentPageOffsetFraction 非零表示 pager 正在横向偏移。
+            // 纵向滚动时它为 0，所以能区分「横向切页」和「纵向下滑」，不会像
+            // isScrollInProgress 那样在纵向下滑时抖动误触发。
+            val horizontalPagerOffset = pagerState.currentPageOffsetFraction.absoluteValue > 0.01f
             val pagerSwitching =
                 mainPagerState.isNavigating ||
-                    mainPagerState.pagerState.currentPage != mainPagerState.pagerState.settledPage
+                    pagerState.currentPage != pagerState.settledPage ||
+                    horizontalPagerOffset
 
-            // 只在「从切页中 → 切页稳定」的那一次翻转时重置；
-            // 纵向滚动不会改变 pagerSwitching，因此不会误触发。
-            LaunchedEffect(Unit) {
-                var previousSwitching = pagerSwitching
-                snapshotFlow { pagerSwitching }.collect { switching ->
-                    if (previousSwitching && !switching) {
-                        // 一次切页真正完成：重启 autoHide 计时器并清除上一页残留的滚动方向。
-                        floatingBarVisibility.reset()
-                    }
-                    previousSwitching = switching
+            // 切页刚完成的那一帧：isScrollingDown 可能还是上一页残留的 true，
+            // 直接回落会让导航栏闪一下又消失。用 justSettled 在这一帧强制显示，
+            // 同时 reset() 清除方向、重启 autoHide 计时器，下一帧起正常显示。
+            val previousSwitching = remember { mutableStateOf(pagerSwitching) }
+            val justSettled = previousSwitching.value && !pagerSwitching
+
+            SideEffect {
+                if (justSettled) {
+                    floatingBarVisibility.reset()
                 }
+                previousSwitching.value = pagerSwitching
             }
 
             val floatingBarVisible = when {
                 pagerSwitching -> true
+                justSettled -> true
                 !floatingAutoHide && !floatingSwipeHide -> true
                 !floatingAutoHide -> !floatingBarVisibility.isScrollingDown
                 !floatingSwipeHide -> floatingBarVisibility.visible
