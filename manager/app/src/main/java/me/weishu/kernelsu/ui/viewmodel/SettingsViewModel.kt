@@ -31,7 +31,17 @@ class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl(),
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
+    private val _uiState = MutableStateFlow(
+        SettingsUiState(
+            // 同步、无 IO 的 Natives 静态属性，构造时即可拿到真值。
+            // 提前到首帧赋值，卸载条目不必等 refresh() 末尾统一提交：
+            // LKM 设备进入设置页即渲染，消除"加载完才插入"的跳变；
+            // 晚加载模式下首帧即灰且不可点，不会先亮后灰；
+            // 非 LKM 设备仍为 false，条目照旧不出现，功能门控语义不变。
+            isLkmMode = repo.isLkmMode(),
+            isLateLoadMode = Natives.isLateLoadMode,
+        )
+    )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
     private var refreshGeneration = 0
     private var initialized = false
