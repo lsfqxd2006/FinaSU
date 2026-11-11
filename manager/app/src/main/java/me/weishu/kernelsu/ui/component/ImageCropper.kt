@@ -51,8 +51,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.R
 
-private const val MAX_CROP_SIDE = 1600
-private const val MAX_SOURCE_SIDE = 2048
+// Above the long side of a phone panel: the old 1600/2048 pair decoded a wallpaper at half size.
+private const val MAX_CROP_SIDE = 2560
+private const val MAX_SOURCE_SIDE = 4096
 
 /** A single transformed preview; the same geometry maps the frame back to source pixels. */
 @Composable
@@ -61,6 +62,7 @@ fun SurfaceCropDialog(
     aspect: Float,
     onDismiss: () -> Unit,
     onCropped: (Uri) -> Unit,
+    lossless: Boolean = false,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -96,7 +98,7 @@ fun SurfaceCropDialog(
                             failed = false
                             scope.launch {
                                 val result = withContext(Dispatchers.IO) {
-                                    writeCropped(context, image, region)
+                                    writeCropped(context, image, region, source, lossless)
                                 }
                                 saving = false
                                 if (result != null) onCropped(result) else failed = true
@@ -196,6 +198,23 @@ private fun SurfaceCropEditor(
     }
 }
 
+/** Sampled on a grid: a cutout has large see-through areas, so a fraction of the cost answers it. */
+private fun hasTransparentPixel(bitmap: Bitmap): Boolean {
+    if (!bitmap.hasAlpha()) return false
+    val stepX = (bitmap.width / 64).coerceAtLeast(1)
+    val stepY = (bitmap.height / 64).coerceAtLeast(1)
+    var y = 0
+    while (y < bitmap.height) {
+        var x = 0
+        while (x < bitmap.width) {
+            if ((bitmap.getPixel(x, y) ushr 24) != 0xFF) return true
+            x += stepX
+        }
+        y += stepY
+    }
+    return false
+}
+
 private fun decodeSource(context: Context, uri: Uri): Bitmap? = try {
     ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, info, _ ->
         val longest = max(info.size.width, info.size.height)
@@ -210,7 +229,19 @@ private fun decodeSource(context: Context, uri: Uri): Bitmap? = try {
     null
 }
 
-private fun writeCropped(context: Context, source: Bitmap, region: CropRegion): Uri? {
+private fun writeCropped(
+    context: Context,
+    source: Bitmap,
+    region: CropRegion,
+    original: Uri,
+    lossless: Boolean,
+): Uri? {
+    // A frame over the whole picture needs no work: hand back the original, not a re-encode.
+    if (region.left == 0 && region.top == 0 &&
+        region.width == source.width && region.height == source.height
+    ) {
+        return original
+    }
     var cropped: Bitmap? = null
     var output: Bitmap? = null
     var file: File? = null
@@ -225,8 +256,17 @@ private fun writeCropped(context: Context, source: Bitmap, region: CropRegion): 
             )
         } else cropped
         val directory = File(context.cacheDir, "surface_crop_cache").apply { mkdirs() }
-        file = File.createTempFile("cropped_", ".jpg", directory)
-        file.outputStream().use { check(output.compress(Bitmap.CompressFormat.JPEG, 92, it)) }
+        // JPEG has no alpha and paints transparent pixels black, so cutouts stay PNG.
+        val encodeLosslessly = lossless || hasTransparentPixel(output)
+        file = File.createTempFile("cropped_", if (encodeLosslessly) ".png" else ".jpg", directory)
+        file.outputStream().use {
+            val written = if (encodeLosslessly) {
+                output.compress(Bitmap.CompressFormat.PNG, 100, it)
+            } else {
+                output.compress(Bitmap.CompressFormat.JPEG, 92, it)
+            }
+            check(written)
+        }
         return Uri.fromFile(file)
     } catch (e: CancellationException) {
         file?.delete()

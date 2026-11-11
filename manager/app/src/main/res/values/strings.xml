@@ -39,8 +39,8 @@
     <string name="home_version">Version</string>
     <string name="home_running_mode">Run mode</string>
     <string name="home_hook_type">Hook type</string>
-    <string name="home_hook_type_tracepoint">Tracepoint</string>
-    <string name="home_hook_type_susfs_inline">SUSFS Inline</string>
+    <string name="home_hook_type_tracepoint">Tracepoint Syscall Redirect</string>
+    <string name="home_hook_type_susfs_inline">SUSFS Inline Syscall Redirect</string>
     <string name="home_hook_type_unknown">Legacy / unknown</string>
     <string name="home_hook_type_failed">%1$s (abnormal)</string>
     <string name="home_running_status">Running status</string>
@@ -256,6 +256,7 @@
     <string name="action">Action</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
+    <string name="external_link_open_failed">Unable to open link</string>
     <string name="enable_web_debugging">WebView debugging</string>
     <string name="enable_web_debugging_summary">Can be used to debug WebUI. Please enable only when needed.</string>
     <string name="direct_install">Direct install (Recommended)</string>
