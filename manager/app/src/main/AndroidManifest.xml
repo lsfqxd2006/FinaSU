@@ -126,6 +126,7 @@
             android:name=".ui.themepreview.ThemePreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.KernelSU" />
+
         <activity
             android:name=".ui.KernelSULauncherActivity"
             android:exported="false"
