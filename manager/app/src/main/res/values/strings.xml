@@ -765,6 +765,10 @@
     <string name="settings_navbar_glass_border_summary">Enable subtle border outline around the navigation bar</string>
     <string name="settings_nav_mode">Navigation Bar Mode</string>
     <string name="settings_nav_mode_summary">Choose how the navigation bar is displayed</string>
+    <string name="settings_nav_icon_animation">Icon animation</string>
+    <string name="settings_nav_icon_animation_summary">Choose how the selected icon changes</string>
+    <string name="settings_nav_icon_animation_morph">Morph</string>
+    <string name="settings_nav_icon_animation_fade">Fade</string>
     <string name="settings_nav_mode_auto">Auto Traditional</string>
     <string name="settings_nav_mode_bottom">Always Bottom Bar</string>
     <string name="settings_nav_mode_rail">Always Side Rail</string>
@@ -1131,4 +1135,17 @@
     <string name="guide_page_indicator">Page %1$d of %2$d</string>
     <string name="guide_about_entry_title">Show welcome guide again</string>
     <string name="guide_about_entry_summary">Replay the first-launch introduction</string>
+    <string name="susfs_priority_title">App UID detection blocking</string>
+    <string name="susfs_priority_apps">Protected apps</string>
+    <string name="susfs_priority_result">Last operation</string>
+    <string name="susfs_priority_count">%1$d apps saved</string>
+    <string name="susfs_priority_stop">Stop managing</string>
+    <string name="susfs_priority_stop_hint">Stop sending this list. The current kernel filter is not cleared.</string>
+    <string name="susfs_priority_hint">Blocks priority-interface queries from detecting the selected apps’ UIDs.</string>
+    <string name="susfs_priority_unverified">Kernel acceptance does not verify every app or the actual effect.</string>
+    <string name="susfs_priority_shared">Apps sharing an app ID, including other Android users, may be affected together. Applying an empty selection clears the filter.</string>
+    <string name="susfs_priority_search">Search apps or packages</string>
+    <string name="susfs_priority_missing">Not installed or currently unavailable</string>
+    <string name="susfs_priority_load_error">Could not load the app list.</string>
+    <string name="susfs_priority_empty">No matching apps.</string>
 </resources>

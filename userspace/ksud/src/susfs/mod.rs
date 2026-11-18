@@ -116,6 +116,11 @@ fn capabilities(detection: &Detection) -> Capabilities {
         ),
         (static_supported, "static_kstat"),
         (redirect, "redirect"),
+        (
+            detection.supports("CONFIG_KSU_SUSFS_PRIORITY_UID_FILTER")
+                && detection.implementation == "builtin",
+            "priority_uid_filter",
+        ),
         (detection.proc("susfs_hide_modules"), "hidden_modules"),
         (detection.proc("susfs_hide_mounts"), "mount_prefixes"),
     ] {
@@ -529,7 +534,7 @@ pub fn run(command: Command) -> Result<()> {
                     "status": "saved",
                     "management": store::summary(&config)?,
                     "migrated": migration.is_some(),
-                    "warnings": migration.map(|value| value.warnings).unwrap_or_default(),
+                    "warnings": migration.map_or_default(|value| value.warnings),
                 })
             );
         }
@@ -544,7 +549,7 @@ pub fn run(command: Command) -> Result<()> {
                 serde_json::json!({
                     "config": config,
                     "migrated": migration.is_some(),
-                    "warnings": migration.map(|value| value.warnings).unwrap_or_default(),
+                    "warnings": migration.map_or_default(|value| value.warnings),
                 })
             );
         }
