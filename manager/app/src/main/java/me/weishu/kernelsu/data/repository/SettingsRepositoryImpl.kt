@@ -67,7 +67,7 @@ private fun ksudFailure(result: com.topjohnwu.superuser.Shell.Result, fallback: 
         ?: "$fallback (exit ${result.code})"
 }
 
-private fun requireKsud(result: com.topjohnwu.superuser.Shell.Result, fallback: String) {
+internal fun requireKsud(result: com.topjohnwu.superuser.Shell.Result, fallback: String) {
     check(result.isSuccess) { ksudFailure(result, fallback) }
 }
 
@@ -413,35 +413,6 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
         }
 
-    override suspend fun setFolkZygiskEnabled(enabled: Boolean): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                if (enabled) {
-                    val status = getFolkZygiskStatus().getOrThrow()
-                    if (!status.engineAvailable) {
-                        requireKsud(
-                            execKsudResult("zygisk install-engine"),
-                            "Engine installation failed",
-                        )
-                    }
-                }
-                val command = if (enabled) "enable" else "disable"
-                requireKsud(
-                    execKsudResult("zygisk $command"),
-                    "FolkZygisk configuration failed",
-                )
-            }
-        }
-
-    override suspend fun recoverFolkZygisk(): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            requireKsud(
-                execKsudResult("zygisk recover"),
-                "FolkZygisk recovery failed",
-            )
-        }
-    }
-
     override suspend fun getSuiStatus(): Result<SuiStatus> = withContext(Dispatchers.IO) {
         runCatching {
             val result = execKsudResult("sui status --json")
@@ -465,7 +436,7 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override suspend fun suiProbeManagement(): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            val service = SuiBridge.service() ?: error("Sui bridge returned no binder")
+            val service = SuiBridge.service() ?: error("sui_bridge_unavailable")
             val uid = android.os.Process.myUid()
             val flags = service.getFlagsForUid(uid, SuiBridge.MASK_PERMISSION)
             // Idempotent write: it throws unless Sui accepts this app as its manager.
@@ -476,7 +447,7 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override suspend fun suiAppPermissions(): Result<List<SuiApp>> = withContext(Dispatchers.IO) {
         runCatching {
-            val service = SuiBridge.service() ?: error("Sui bridge returned no binder")
+            val service = SuiBridge.service() ?: error("sui_bridge_unavailable")
             val pm = ksuApp.packageManager
             val entries = LinkedHashMap<Int, SuiApp>()
             val launcher = android.content.Intent(android.content.Intent.ACTION_MAIN)
@@ -503,7 +474,7 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override suspend fun setSuiAppMode(uid: Int, mode: Int): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val service = SuiBridge.service() ?: error("Sui bridge returned no binder")
+            val service = SuiBridge.service() ?: error("sui_bridge_unavailable")
             service.updateFlagsForUid(uid, SuiApp.MODE_MASK, mode)
         }
     }
@@ -522,7 +493,7 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override suspend fun suiDefaultMode(): Result<Int> = withContext(Dispatchers.IO) {
         runCatching {
-            SuiBridge.defaultMode() ?: error("Sui did not report the default permission")
+            SuiBridge.defaultMode() ?: error("sui_no_default_permission")
         }
     }
 
@@ -536,19 +507,19 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override suspend fun suiSettingsFlags(): Result<Int> = withContext(Dispatchers.IO) {
         runCatching {
-            SuiBridge.globalSettings() ?: error("Sui did not report global settings")
+            SuiBridge.globalSettings() ?: error("sui_no_global_settings")
         }
     }
 
     override suspend fun setSuiSettingsFlags(flags: Int): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            check(SuiBridge.setGlobalSettings(flags)) { "Sui rejected the setting" }
+            check(SuiBridge.setGlobalSettings(flags)) { "sui_setting_rejected" }
         }
     }
 
     override suspend fun suiHiddenUids(): Result<List<Int>> = withContext(Dispatchers.IO) {
         runCatching {
-            SuiBridge.hiddenUids()?.toList() ?: error("Sui did not report hidden apps")
+            SuiBridge.hiddenUids()?.toList() ?: error("sui_no_hidden_apps")
         }
     }
 

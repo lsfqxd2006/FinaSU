@@ -17,8 +17,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CheckableDropdownMenuItem
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuPopup
@@ -99,7 +103,7 @@ fun SuiPermissionsMaterial(
     val haptic = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
     val statusMessage = when {
-        uiState.error != null -> uiState.error
+        uiState.error != null -> suiErrorText(uiState.error)
         uiState.loading -> stringResource(R.string.sui_permissions_loading)
         uiState.visible.isEmpty() -> stringResource(R.string.sui_permissions_empty)
         else -> null
@@ -246,6 +250,7 @@ fun SuiPermissionsMaterial(
                     SegmentedColumn {
                         item(key = "sui_default") {
                             SegmentedListItem(
+                                leadingContent = { Icon(Icons.Filled.AdminPanelSettings, null) },
                                 headlineContent = { Text(stringResource(R.string.sui_default_mode)) },
                                 supportingContent = { Text(stringResource(R.string.sui_default_mode_summary)) },
                                 trailingContent = {
@@ -256,6 +261,7 @@ fun SuiPermissionsMaterial(
                         }
                         item(key = "sui_hidden") {
                             SegmentedListItem(
+                                leadingContent = { Icon(Icons.Filled.VisibilityOff, null) },
                                 headlineContent = { Text(stringResource(R.string.sui_hidden_count)) },
                                 supportingContent = {
                                     Text(
@@ -267,6 +273,7 @@ fun SuiPermissionsMaterial(
                         }
                         item(key = "sui_notifications", visible = !notificationsEnabled) {
                             SegmentedListItem(
+                                leadingContent = { Icon(Icons.Filled.NotificationsOff, null) },
                                 headlineContent = { Text(stringResource(R.string.sui_notifications_off)) },
                                 supportingContent = {
                                     Text(stringResource(R.string.sui_notifications_off_summary))
@@ -282,6 +289,7 @@ fun SuiPermissionsMaterial(
                         SegmentedColumn {
                             item {
                                 SegmentedListItem(
+                                    leadingContent = { Icon(Icons.Filled.Warning, null) },
                                     headlineContent = {
                                         Text(statusMessage, overflow = TextOverflow.Ellipsis)
                                     },
@@ -303,6 +311,15 @@ fun SuiPermissionsMaterial(
             }
         }
     }
+}
+
+/** The Sui channel reports its own failures as codes; anything else is shown as it arrived. */
+@Composable
+private fun suiErrorText(message: String): String = when {
+    message == "sui_bridge_unavailable" -> stringResource(R.string.sui_error_bridge)
+    message.startsWith("sui_no_") -> stringResource(R.string.sui_error_no_value)
+    message == "sui_setting_rejected" -> stringResource(R.string.sui_error_rejected)
+    else -> message
 }
 
 /** Sui's own overflow menu, minus the entries that only open its project pages. */
